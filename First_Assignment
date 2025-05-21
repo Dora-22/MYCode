@@ -1,0 +1,81 @@
+import React, { Component } from 'react';
+
+class ClassCounter extends Component {
+  constructor(props) {
+    super(props);
+    this.state = {
+      count: 0,
+    };
+  }
+
+  increment = () => {
+    this.setState({ count: this.state.count + 1 });
+  };
+
+  decrement = () => {
+    this.setState({ count: this.state.count - 1 });
+  };
+
+  render() {
+    return (
+      <div style={{ border: '1px solid #ccc', padding: '20px', margin: '10px', borderRadius: '8px' }}>
+        <h2>Class Counter</h2>
+        <p>Count: {this.state.count}</p>
+        <button onClick={this.increment} style={{ marginRight: '10px', padding: '8px 15px', fontSize: '16px' }}>+</button>
+        <button onClick={this.decrement} style={{ padding: '8px 15px', fontSize: '16px' }}>-</button>
+      </div>
+    );
+  }
+}
+
+export default ClassCounter;
+
+
+
+
+Q2) 
+
+import React, { useState } from 'react';
+
+function FunctionalCounter() {
+  const [count, setCount] = useState(0);
+
+  const increment = () => {
+    setCount(count + 1);
+  };
+
+  const decrement = () => {
+    setCount(count - 1);
+  };
+
+  return (
+    <div style={{ border: '1px solid #ccc', padding: '20px', margin: '10px', borderRadius: '8px' }}>
+      <h2>Functional Counter (with Hooks)</h2>
+      <p>Count: {count}</p>
+      <button onClick={increment} style={{ marginRight: '10px', padding: '8px 15px', fontSize: '16px' }}>+</button>
+      <button onClick={decrement} style={{ padding: '8px 15px', fontSize: '16px' }}>-</button>
+    </div>
+  );
+}
+
+export default FunctionalCounter;
+
+
+
+
+// App.js
+import React from 'react';
+import ClassCounter from './ClassCounter'; // Assuming you save the above as ClassCounter.js
+import FunctionalCounter from './FunctionalCounter'; // Assuming you save the above as FunctionalCounter.js
+
+function App() {
+  return (
+    <div style={{ fontFamily: 'Arial, sans-serif', textAlign: 'center', marginTop: '50px' }}>
+      <h1>Counter Application</h1>
+      <ClassCounter />
+      <FunctionalCounter />
+    </div>
+  );
+}
+
+export default App;
