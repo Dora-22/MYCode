@@ -1,0 +1,144 @@
+import React, { createContext, useState, useEffect, useContext, useCallback } from 'react';
+
+export const FinanceContext = createContext();
+
+export const FinanceProvider = ({ children }) => {
+  const [transactions, setTransactions] = useState(() => {
+    try {
+      const storedTransactions = localStorage.getItem('transactions');
+      return storedTransactions ? JSON.parse(storedTransactions).map(t => ({
+        ...t,
+        date: new Date(t.date) // Convert date strings back to Date objects
+      })) : [];
+    } catch (error) {
+      console.error("Failed to load transactions from localStorage:", error);
+      return [];
+    }
+  });
+
+  const [budgets, setBudgets] = useState(() => {
+    try {
+      const storedBudgets = localStorage.getItem('budgets');
+      return storedBudgets ? JSON.parse(storedBudgets) : [];
+    } catch (error) {
+      console.error("Failed to load budgets from localStorage:", error);
+      return [];
+    }
+  });
+
+  // Save to localStorage whenever state changes
+  useEffect(() => {
+    try {
+      localStorage.setItem('transactions', JSON.stringify(transactions));
+    } catch (error) {
+      console.error("Failed to save transactions to localStorage:", error);
+    }
+  }, [transactions]);
+
+  useEffect(() => {
+    try {
+      localStorage.setItem('budgets', JSON.stringify(budgets));
+    } catch (error) {
+      console.error("Failed to save budgets to localStorage:", error);
+    }
+  }, [budgets]);
+
+
+  // --- Transaction Operations ---
+  const addTransaction = useCallback((transactionData) => {
+    const newTransaction = {
+      id: Date.now(),
+      ...transactionData,
+      amount: parseFloat(transactionData.amount), // Ensure amount is a number
+      date: new Date(transactionData.date) // Ensure date is a Date object
+    };
+    setTransactions((prev) => [...prev, newTransaction]);
+  }, []);
+
+  const updateTransaction = useCallback((id, updatedData) => {
+    setTransactions((prev) =>
+      prev.map((t) =>
+        t.id === parseInt(id) ? { ...t, ...updatedData, amount: parseFloat(updatedData.amount), date: new Date(updatedData.date) } : t
+      )
+    );
+  }, []);
+
+  const deleteTransaction = useCallback((id) => {
+    setTransactions((prev) => prev.filter((t) => t.id !== parseInt(id)));
+  }, []);
+
+
+  // --- Budget Operations ---
+  const addBudget = useCallback((budgetData) => {
+    const newBudget = {
+      id: Date.now(),
+      ...budgetData,
+      amount: parseFloat(budgetData.amount)
+    };
+    setBudgets((prev) => [...prev, newBudget]);
+  }, []);
+
+  const updateBudget = useCallback((id, updatedData) => {
+    setBudgets((prev) =>
+      prev.map((b) =>
+        b.id === parseInt(id) ? { ...b, ...updatedData, amount: parseFloat(updatedData.amount) } : b
+      )
+    );
+  }, []);
+
+  const deleteBudget = useCallback((id) => {
+    setBudgets((prev) => prev.filter((b) => b.id !== parseInt(id)));
+  }, []);
+
+  // --- Financial Calculations ---
+  const calculateTotals = useCallback(() => {
+    const totalIncome = transactions
+      .filter((t) => t.type === 'income')
+      .reduce((sum, t) => sum + t.amount, 0);
+
+    const totalExpenses = transactions
+      .filter((t) => t.type === 'expense')
+      .reduce((sum, t) => sum + t.amount, 0);
+
+    const remainingBudget = totalIncome - totalExpenses;
+    const savings = remainingBudget > 0 ? remainingBudget : 0; // Simple savings definition
+
+    return { totalIncome, totalExpenses, remainingBudget, savings };
+  }, [transactions]);
+
+  const { totalIncome, totalExpenses, remainingBudget, savings } = calculateTotals();
+
+  // --- Categories (predefined for simplicity) ---
+  const categories = [
+    'Salary', 'Freelance', 'Investments', 'Gifts', 'Other Income',
+    'Rent', 'Groceries', 'Utilities', 'Transportation', 'Entertainment',
+    'Dining Out', 'Shopping', 'Health', 'Education', 'Travel', 'Other Expenses'
+  ];
+
+  // --- Context Value ---
+  const value = {
+    transactions,
+    budgets,
+    addTransaction,
+    updateTransaction,
+    deleteTransaction,
+    addBudget,
+    updateBudget,
+    deleteBudget,
+    totalIncome,
+    totalExpenses,
+    remainingBudget,
+    savings,
+    categories,
+  };
+
+  return (
+    <FinanceContext.Provider value={value}>
+      {children}
+    </FinanceContext.Provider>
+  );
+};
+
+export const useFinance = () => {
+  return useContext(FinanceContext);
+};
