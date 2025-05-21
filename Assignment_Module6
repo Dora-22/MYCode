@@ -1,0 +1,98 @@
+import React, { createContext, useState, useEffect } from 'react';
+
+// Create the Context
+export const TodoContext = createContext();
+
+// Create the Provider Component
+export const TodoProvider = ({ children }) => {
+  // State for the list of to-do items
+  const [todos, setTodos] = useState([]);
+  // State for user feedback messages (e.g., for validation)
+  const [feedbackMessage, setFeedbackMessage] = useState('');
+  // State for the search filter input
+  const [filterText, setFilterText] = useState('');
+
+  // useEffect to load todos from localStorage on initial render
+  useEffect(() => {
+    try {
+      const storedTodos = localStorage.getItem('react-todo-app-todos');
+      if (storedTodos) {
+        setTodos(JSON.parse(storedTodos));
+      }
+    } catch (error) {
+      console.error("Failed to load todos from localStorage:", error);
+      // Optionally, set a feedback message to the user
+      setFeedbackMessage("Error loading tasks. Please try again.");
+    }
+  }, []); // Empty dependency array means this runs only once on mount
+
+  // useEffect to save todos to localStorage whenever the 'todos' state changes
+  useEffect(() => {
+    try {
+      localStorage.setItem('react-todo-app-todos', JSON.stringify(todos));
+    } catch (error) {
+      console.error("Failed to save todos to localStorage:", error);
+      // Optionally, set a feedback message to the user
+      setFeedbackMessage("Error saving tasks. Your changes might not be saved.");
+    }
+  }, [todos]); // Runs whenever 'todos' state changes
+
+  /**
+   * Adds a new task to the to-do list.
+   * Performs validation to ensure the task is not empty or just whitespace.
+   * @param {string} taskTitle - The title of the new task.
+   */
+  const addTodo = (taskTitle) => {
+    const trimmedTask = taskTitle.trim();
+
+    if (!trimmedTask) {
+      setFeedbackMessage('Task title cannot be empty!');
+      return false; // Indicate failure
+    }
+
+    setTodos([...todos, { id: Date.now(), title: trimmedTask }]);
+    setFeedbackMessage(''); // Clear any previous feedback message
+    return true; // Indicate success
+  };
+
+  /**
+   * Deletes a task from the to-do list.
+   * @param {number} id - The unique ID of the task to be deleted.
+   */
+  const deleteTodo = (id) => {
+    setTodos(todos.filter(todo => todo.id !== id));
+  };
+
+  /**
+   * Clears all tasks from the to-do list.
+   */
+  const clearAllTodos = () => {
+    setTodos([]);
+    setFeedbackMessage('All tasks cleared!');
+  };
+
+  /**
+   * Filters the todos based on the filterText.
+   * @returns {Array} The filtered list of todos.
+   */
+  const filteredTodos = todos.filter(todo =>
+    todo.title.toLowerCase().includes(filterText.toLowerCase())
+  );
+
+  return (
+    <TodoContext.Provider
+      value={{
+        todos: filteredTodos, // Provide filtered todos to consumers
+        addTodo,
+        deleteTodo,
+        clearAllTodos,
+        feedbackMessage,
+        setFeedbackMessage, // Allow input component to clear its own feedback
+        filterText,
+        setFilterText,
+      }}
+    >
+      {children}
+    </TodoContext.Provider>
+  );
+};
