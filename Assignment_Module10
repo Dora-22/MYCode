@@ -1,0 +1,108 @@
+import React, { createContext, useState, useEffect, useContext } from 'react';
+
+export const StudentContext = createContext();
+
+export const StudentProvider = ({ children }) => {
+  const [students, setStudents] = useState(() => {
+    // Load students from localStorage on initial render
+    try {
+      const storedStudents = localStorage.getItem('students');
+      return storedStudents ? JSON.parse(storedStudents) : [];
+    } catch (error) {
+      console.error("Failed to load students from localStorage:", error);
+      return [];
+    }
+  });
+
+  const [searchTerm, setSearchTerm] = useState('');
+  const [currentPage, setCurrentPage] = useState(1);
+  const studentsPerPage = 5; // Number of students to display per page
+
+  // Save students to localStorage whenever the 'students' state changes
+  useEffect(() => {
+    try {
+      localStorage.setItem('students', JSON.stringify(students));
+    } catch (error) {
+      console.error("Failed to save students to localStorage:", error);
+    }
+  }, [students]);
+
+  // --- CRUD Operations (Simulated Backend) ---
+
+  // Simulate POST request
+  const addStudent = (studentData) => {
+    const newStudent = {
+      id: Date.now(), // Simple unique ID
+      ...studentData,
+    };
+    setStudents((prevStudents) => [...prevStudents, newStudent]);
+    return newStudent; // Return the added student
+  };
+
+  // Simulate GET request (fetching all, then filtering/paginating in UI)
+  const getStudents = () => {
+    return students;
+  };
+
+  // Simulate GET by ID
+  const getStudentById = (id) => {
+    return students.find(student => student.id === parseInt(id));
+  };
+
+  // Simulate PUT request
+  const updateStudent = (id, updatedData) => {
+    setStudents((prevStudents) =>
+      prevStudents.map((student) =>
+        student.id === parseInt(id) ? { ...student, ...updatedData } : student
+      )
+    );
+  };
+
+  // Simulate DELETE request
+  const deleteStudent = (id) => {
+    setStudents((prevStudents) => prevStudents.filter((student) => student.id !== parseInt(id)));
+  };
+
+  // --- Search and Pagination Logic ---
+
+  const filteredStudents = students.filter(student =>
+    student.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    student.course.toLowerCase().includes(searchTerm.toLowerCase())
+  );
+
+  const totalPages = Math.ceil(filteredStudents.length / studentsPerPage);
+  const indexOfLastStudent = currentPage * studentsPerPage;
+  const indexOfFirstStudent = indexOfLastStudent - studentsPerPage;
+  const currentStudents = filteredStudents.slice(indexOfFirstStudent, indexOfLastStudent);
+
+  const paginate = (pageNumber) => setCurrentPage(pageNumber);
+
+  const value = {
+    students: currentStudents, // Provide paginated and filtered students
+    allStudents: students, // Provide all students for internal use if needed
+    addStudent,
+    getStudents,
+    getStudentById,
+    updateStudent,
+    deleteStudent,
+    searchTerm,
+    setSearchTerm,
+    currentPage,
+    setCurrentPage,
+    studentsPerPage,
+    totalPages,
+    paginate,
+    filteredStudentsCount: filteredStudents.length, // Total count after filtering
+  };
+
+  return (
+    <StudentContext.Provider value={value}>
+      {children}
+    </StudentContext.Provider>
+  );
+};
+
+// Custom hook to use the StudentContext
+export const useStudents = () => {
+  return useContext(StudentContext);
+};
