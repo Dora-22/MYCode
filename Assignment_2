@@ -1,0 +1,101 @@
+import React, { useState } from 'react';
+
+function App() {
+  // State to hold the current value of the input field
+  const [newTask, setNewTask] = useState('');
+  // State to hold the list of to-do items
+  const [todos, setTodos] = useState([]);
+  // State for user feedback messages (e.g., for validation)
+  const [feedbackMessage, setFeedbackMessage] = useState('');
+
+  /**
+   * Handles changes in the input field.
+   * Updates the 'newTask' state and clears any feedback message.
+   * @param {Object} e - The event object from the input change.
+   */
+  const handleInputChange = (e) => {
+    setNewTask(e.target.value);
+    setFeedbackMessage(''); // Clear feedback when user starts typing
+  };
+
+  /**
+   * Handles adding a new task to the to-do list.
+   * Performs validation to ensure the task is not empty or just whitespace.
+   */
+  const handleAddTask = () => {
+    const trimmedTask = newTask.trim();
+
+    // Validation: Check if the trimmed task is empty
+    if (!trimmedTask) {
+      setFeedbackMessage('Task title cannot be empty!');
+      return; // Stop the function if validation fails
+    }
+
+    // Add the new task to the 'todos' array
+    // Each task is an object with a unique ID and the title
+    setTodos([...todos, { id: Date.now(), title: trimmedTask }]);
+    setNewTask(''); // Clear the input field after adding the task
+    setFeedbackMessage(''); // Clear any previous feedback message
+  };
+
+  return (
+    <div className="min-h-screen bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center p-4 font-inter">
+      <div className="bg-white p-8 rounded-xl shadow-2xl w-full max-w-md">
+        <h1 className="text-4xl font-bold text-center text-gray-800 mb-8">
+          My To-Do List
+        </h1>
+
+        <div className="flex flex-col sm:flex-row gap-4 mb-6">
+          <input
+            type="text"
+            value={newTask}
+            onChange={handleInputChange}
+            placeholder="Enter a new task..."
+            aria-label="New task title"
+            className="flex-grow p-3 border-2 border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-lg"
+            onKeyPress={(e) => {
+              // Allow pressing Enter key to add task
+              if (e.key === 'Enter') {
+                handleAddTask();
+              }
+            }}
+          />
+          <button
+            onClick={handleAddTask}
+            className="px-6 py-3 bg-blue-600 text-white font-semibold rounded-lg shadow-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition duration-300 ease-in-out transform hover:scale-105"
+          >
+            Add Task
+          </button>
+        </div>
+
+        {/* Display feedback message if present */}
+        {feedbackMessage && (
+          <p className="text-red-600 text-center mb-4 text-sm font-medium">
+            {feedbackMessage}
+          </p>
+        )}
+
+        {/* To-Do List Display */}
+        {todos.length > 0 ? (
+          <ul className="space-y-3">
+            {todos.map((todo) => (
+              <li
+                key={todo.id} // Unique key for each list item for React's reconciliation
+                className="bg-gray-100 p-4 rounded-lg shadow-sm text-gray-700 text-lg flex items-center justify-between"
+              >
+                <span>{todo.title}</span>
+                {/* Optional: Add a delete button or other actions here */}
+              </li>
+            ))}
+          </ul>
+        ) : (
+          <p className="text-center text-gray-500 text-lg mt-8">
+            No tasks yet! Add some above.
+          </p>
+        )}
+      </div>
+    </div>
+  );
+}
+
+export default App;
