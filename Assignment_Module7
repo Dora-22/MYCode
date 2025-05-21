@@ -1,0 +1,21 @@
+import React from 'react';
+import { Container, Jumbotron } from 'react-bootstrap'; // Jumbotron is deprecated in Bootstrap 5, but still usable in React-Bootstrap 4.x. For Bootstrap 5, you'd use custom styling or a Card.
+
+function HomePage() {
+  return (
+    <Container className="mt-5 text-center">
+      <Jumbotron className="bg-light p-5 rounded-lg shadow-sm">
+        <h1 className="display-4">Welcome to Our Multi-Page App!</h1>
+        <p className="lead">
+          Explore different functionalities using the navigation bar above.
+        </p>
+        <hr className="my-4" />
+        <p>
+          This application demonstrates multi-page navigation, form validation, and lazy loading with React.
+        </p>
+      </Jumbotron>
+    </Container>
+  );
+}
+
+export default HomePage;
